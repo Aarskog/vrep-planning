@@ -2,10 +2,20 @@ import vrep
 import rospy
 from std_msgs.msg import String
 
+'''
+Actions:
+pickupBoxFromPlace(box,where)
+dropToPlace(where to place,place left right or middle,what height level,initial pos)
+dropToPlatform(where to drop on platform)
+'''
+
 class vrep_planning:
 	def __init__(self):
 		self.message_received = False
-		self.plan = [["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place2 dropHeight1 pickup2"]]
+		self.plan = [["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place3 middle dropHeight1 pickup2"],\
+		["pickupBoxFromPlace yellowBox1 pickup2"],['dropToPlatform platformDrop2'],\
+		["pickupBoxFromPlace yellowBox2 pickup2"],["dropToPlace place2 right dropHeight1 pickup2"],\
+		['pickupFromPlatformAndReorient yellowBox1'],["dropToPlace place2 left dropHeight1 pickup2"]]
 
 
 		self.talker()
