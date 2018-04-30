@@ -5,13 +5,17 @@ from std_msgs.msg import String
 class vrep_planning:
 	def __init__(self):
 		self.message_received = False
+		self.plan = [["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place2 dropHeight1 pickup2"]]
+
+
 		self.talker()
 
 
 	def callback(self,data):
 		rospy.loginfo(rospy.get_name()+"I heard %s",data.data)
 		if data.data == 'msg_received':
-			self.message_received = True
+			self.plan.pop(0)
+			#self.message_received = True
 
 
 	def talker(self):
@@ -39,11 +43,13 @@ class vrep_planning:
 		#     rospy.loginfo(hello_str)
 		#     pub.publish(hello_str)
 		#     rate.sleep()
-		while not self.message_received and not rospy.is_shutdown() :
-		    hello_str = "hells world %s" % rospy.get_time()
-		    rospy.loginfo(hello_str)
-		    pub.publish(hello_str)
-		    rate.sleep()
+
+		while not rospy.is_shutdown() and self.plan:
+			# str = "hells world %s" % rospy.get_time()
+			msg = self.plan[0][0]
+			rospy.loginfo(msg)
+			pub.publish(msg)
+			rate.sleep()
 def main():
 	try:
 		vp = vrep_planning()
@@ -52,8 +58,9 @@ def main():
 		pass
 if __name__=="__main__":
 	main()
-'''
--- This script controls the Youbot task. It is threaded. In next sections, there are a lot of function definitions
+
+
+'''-- This script controls the Youbot task. It is threaded. In next sections, there are a lot of function definitions
 -- that ease the control of the robot. The arm of the robot is controlled in:
 --
 -- 1. Forward kinematics mode ( setFkMode() )
@@ -251,12 +258,13 @@ dropToPlace=function(placeHandle,shift,verticalPos,startConf,noVerticalArmForUpM
     setFkMode()
 end
 
+
 function subscriber_callback(msg)
     -- This is the subscriber callback function
     sim.addStatusbarMessage('subscriber receiver following String: '..msg.data)
     simROS.publish(publisher,{data='msg_received'})
+
     if not doing then
-        run_thing()
         doing = true
     end
 
@@ -291,15 +299,20 @@ function sysCall_threadmain()
         subscriber=simROS.subscribe('/chatter','std_msgs/String','subscriber_callback')
     end
 
-    --run_thing()
+
+    init()
     while (true) do
-        a = 1
+        if doing then
+            doing = false
+            pickupBoxFromPlace(objectDict['redBox1'],objectDict['pickup1'])
+
+        end
+
     end
 
 end
 
-
-function run_thing()
+function init()
     gripperTarget=sim.getObjectHandle('youBot_gripperPositionTarget')
     gripperTip=sim.getObjectHandle('youBot_gripperPositionTip')
     vehicleReference=sim.getObjectHandle('youBot_vehicleReference')
@@ -311,6 +324,16 @@ function run_thing()
     greenBox2=sim.getObjectHandle('greenRectangle2')
     greenBox3=sim.getObjectHandle('greenRectangle3')
     armJoints={-1,-1,-1,-1,-1}
+
+    objectDict = {}
+    objectDict['redBox1'] = redBox1
+    objectDict['yellowBox1'] = yellowBox1
+    objectDict['yellowBox2'] = yellowBox2
+    objectDict['greenBox1'] = greenBox1
+    objectDict['greenBox2'] = greenBox2
+    objectDict['greenBox3'] = greenBox3
+
+
     for i=0,4,1 do
         armJoints[i+1]=sim.getObjectHandle('youBotArmJoint'..i)
     end
@@ -323,6 +346,8 @@ function run_thing()
     place2=sim.getObjectHandle('place2')
     place3=sim.getObjectHandle('place3')
 
+
+
     pickup1={0,-14.52*math.pi/180,-70.27*math.pi/180,-95.27*math.pi/180,0*math.pi/180}
     pickup2={0,-13.39*math.pi/180,-93.91*math.pi/180,-72.72*math.pi/180,90*math.pi/180}
     pickup3={0,-14.52*math.pi/180,-70.27*math.pi/180,-95.27*math.pi/180,90*math.pi/180}
@@ -330,6 +355,19 @@ function run_thing()
     platformDrop1={0,54.33*math.pi/180,32.88*math.pi/180,35.76*math.pi/180,0*math.pi/180}--{0,-0.4,0.2}
     platformDrop2={0,40.74*math.pi/180,45.81*math.pi/180,59.24*math.pi/180,0*math.pi/180}--{0,-0.32,0.2}
     platformDrop3={0,28.47*math.pi/180,55.09*math.pi/180,78.32*math.pi/180,0*math.pi/180}--{0,-0.24,0.2}
+
+    objectDict['place1'] = place1
+    objectDict['place2'] = place2
+    objectDict['place3'] = place3
+    objectDict['pickup1'] = pickup1
+    objectDict['pickup2'] = pickup2
+    objectDict['pickup3'] = pickup3
+    objectDict['platformIntermediateDrop'] = platformIntermediateDrop
+    objectDict['platformDrop1'] = platformDrop1
+    objectDict['platformDrop2'] = platformDrop2
+    objectDict['platformDrop3'] = platformDrop3
+
+
 
     dist1=0.2
     dropHeight1=0.035
@@ -347,8 +385,11 @@ function run_thing()
     setFkMode()
     openGripper()
 
+end
 
-    -- redBox first pickup:
+
+function rest()
+
     m,angle=getBoxAdjustedMatrixAndFacingAngle(redBox1)
     sim.setObjectPosition(vehicleTarget,-1,{m[4]-m[1]*dist1,m[8]-m[5]*dist1,0})
     sim.setObjectOrientation(vehicleTarget,-1,{0,0,angle})
@@ -364,8 +405,7 @@ function run_thing()
     closeGripper()
     p[3]=p[3]+0.05
     sim.rmlMoveToPosition(gripperTarget,-1,-1,nil,nil,ikSpeed,ikAccel,ikJerk,p,nil,nil)
-end
-function rest()
+
     -- redBox first drop:
     dropToPlace(place3,0,dropHeight1,pickup2,false)
     -- yellow box1 first pickup and intermediate drop:
@@ -431,4 +471,24 @@ function rest()
     waitToReachVehicleTargetPositionAndOrientation()
     sim.stopSimulation()
 end
+
+function voidi():
+
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 '''
