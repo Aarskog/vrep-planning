@@ -1,32 +1,45 @@
 import vrep
 import rospy
 from std_msgs.msg import String
-
+import PDDLparser
 '''
 Actions:
 pickupBoxFromPlace(box,where)
 dropToPlace(where to place,place left right or middle,what height level,initial pos)
 dropToPlatform(where to drop on platform)
+pickupFromPlatformAndReorient (box)
 '''
 
 class vrep_planning:
 	def __init__(self):
-		self.message_received = False
-		self.plan = [["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place3 middle dropHeight1 pickup2"],\
-		["pickupBoxFromPlace yellowBox1 pickup2"],['dropToPlatform platformDrop2'],\
-		["pickupBoxFromPlace yellowBox2 pickup2"],["dropToPlace place2 right dropHeight1 pickup2"],\
-		['pickupFromPlatformAndReorient yellowBox1'],["dropToPlace place2 left dropHeight1 pickup2"]]
 
+		self.message_received = False
+		self.plan = \
+		[["pickupBoxFromPlace redBox1 pickup1"],		["dropToPlace place3 middle dropHeight1 pickup1"],\
+		["pickupBoxFromPlace yellowBox1 pickup2"],		['dropToPlatform platformDrop2'],\
+		["pickupBoxFromPlace yellowBox2 pickup2"],		["dropToPlace place2 right dropHeight1 pickup2"],\
+		['pickupFromPlatformAndReorient yellowBox1'],	["dropToPlace place2 left dropHeight1 pickup2"],\
+		["pickupBoxFromPlace redBox1 pickup2"],			["dropToPlace place2 middle dropHeight2 pickup2"],\
+		['pickupBoxFromPlace greenBox1 pickup2'],		['dropToPlatform platformDrop1'],\
+		['pickupBoxFromPlace greenBox2 pickup2'],		['dropToPlatform platformDrop3'],\
+		['pickupBoxFromPlace greenBox3 pickup2'],		['dropToPlace place3 rightmost dropHeight1 pickup2'],\
+		['pickupFromPlatformAndReorient greenBox2'],	['dropToPlace place3 middle dropHeight1 pickup2'],\
+		['pickupFromPlatformAndReorient greenBox1'],	['dropToPlace place3 leftmost dropHeight1 pickup2'],\
+		['pickupBoxFromPlace redBox1 pickup2'],			['dropToPlace place1 middle dropHeight1 pickup2'],\
+		['pickupBoxFromPlace yellowBox1 pickup2'],		['dropToPlatform platformDrop2'],\
+		['pickupBoxFromPlace yellowBox2 pickup2'],		['dropToPlace place3 right dropHeight2 pickup2'],\
+		['pickupFromPlatformAndReorient yellowBox1'],	['dropToPlace place3 left dropHeight2 pickup3'],\
+		['pickupBoxFromPlace redBox1 pickup1'],			['dropToPlace place3 middle dropHeight3 pickup1'],['end']]
 
 		self.talker()
 
 
 	def callback(self,data):
-		rospy.loginfo(rospy.get_name()+"I heard %s",data.data)
+		# rospy.loginfo(rospy.get_name()+"I heard %s",data.data)
+		rospy.loginfo('Action complete')
 		if data.data == 'msg_received':
 			self.plan.pop(0)
 			#self.message_received = True
-
 
 	def talker(self):
 		# rospy.init_node('listener', anonymous=True)
@@ -36,41 +49,33 @@ class vrep_planning:
 		pub = rospy.Publisher('chatter', String, queue_size=10)
 		rospy.init_node('talker', anonymous=True)
 		rate = rospy.Rate(10) # 10hz
-		# while not rospy.is_shutdown():
-		#     hello_str = "hello world %s" % rospy.get_time()
-		#     rospy.loginfo(hello_str)
-		#     pub.publish(hello_str)
-		#     rate.sleep()
-		# for i in range(0,3):
-		# 	if not rospy.is_shutdown():
-		# 		hello_str = 'pickup red box'
-		# 		rospy.loginfo(hello_str)
-		# 		pub.publish(hello_str)
-		# 		rate.sleep()
 
-		# while not rospy.is_shutdown():
-		#     hello_str = "hells world %s" % rospy.get_time()
-		#     rospy.loginfo(hello_str)
-		#     pub.publish(hello_str)
-		#     rate.sleep()
-
+		prev_msg = ''
 		while not rospy.is_shutdown() and self.plan:
 			# str = "hells world %s" % rospy.get_time()
 			msg = self.plan[0][0]
-			rospy.loginfo(msg)
+			if not msg==prev_msg:
+				rospy.loginfo(msg)
+				prev_msg = msg
 			pub.publish(msg)
 			rate.sleep()
+
 def main():
 	try:
 		vp = vrep_planning()
 		#talker()
 	except rospy.ROSInterruptException:
 		pass
+
+
+
 if __name__=="__main__":
 	main()
 
 
-'''-- This script controls the Youbot task. It is threaded. In next sections, there are a lot of function definitions
+	'''
+
+-- This script controls the Youbot task. It is threaded. In next sections, there are a lot of function definitions
 -- that ease the control of the robot. The arm of the robot is controlled in:
 --
 -- 1. Forward kinematics mode ( setFkMode() )
@@ -266,21 +271,33 @@ dropToPlace=function(placeHandle,shift,verticalPos,startConf,noVerticalArmForUpM
     sim.rmlMoveToPosition(gripperTarget,-1,-1,nil,nil,ikSpeed,ikAccel,ikJerk,p,nil,nil)
     setGripperTargetMovingWithVehicle()
     setFkMode()
+
 end
 
 
 function subscriber_callback(msg)
-    -- This is the subscriber callback function
-    sim.addStatusbarMessage('subscriber receiver following String: '..msg.data)
-    simROS.publish(publisher,{data='msg_received'})
-
-    if not doing then
-        doing = true
-    end
-
+        message = split(msg.data," ")
 end
 
+function split(pString, pPattern)
 
+   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
+   local fpat = "(.-)" .. pPattern
+   local last_end = 1
+   local s, e, cap = pString:find(fpat, 1)
+   while s do
+      if s ~= 1 or cap ~= "" then
+     table.insert(Table,cap)
+      end
+      last_end = e+1
+      s, e, cap = pString:find(fpat, last_end)
+   end
+   if last_end <= #pString then
+      cap = pString:sub(last_end)
+      table.insert(Table, cap)
+   end
+   return Table
+end
 
 
 
@@ -311,11 +328,30 @@ function sysCall_threadmain()
 
 
     init()
-    while (true) do
-        if doing then
-            doing = false
-            pickupBoxFromPlace(objectDict['redBox1'],objectDict['pickup1'])
 
+    message = ''
+
+    while (true) do
+
+
+        if  message[1]== 'pickupBoxFromPlace' then
+            pickupBoxFromPlace(objectDict[message[2]],objectDict[message[3]])
+            message = ''
+            simROS.publish(publisher,{data='msg_received'})
+
+        elseif message[1] == 'dropToPlace' then
+            dropToPlace(objectDict[message[2]],objectDict[message[3]],objectDict[message[4]],objectDict[message[5]],false)
+            message = ''
+            simROS.publish(publisher,{data='msg_received'})
+
+        elseif message[1] == 'dropToPlatform' then
+            dropToPlatform(objectDict[message[2]])
+            message = ''
+            simROS.publish(publisher,{data='msg_received'})
+        elseif message[1] == 'yellowBox1' then
+            pickupFromPlatformAndReorient(objectDict[message[2]])
+            message = ''
+            simROS.publish(publisher,{data='msg_received'})
         end
 
     end
@@ -390,6 +426,16 @@ function init()
     fkAccel={0.6,0.6,0.6,0.6,0.6}
     fkJerk={1,1,1,1,1}
 
+    boxDistance = 0.04
+
+
+    objectDict['dropHeight1'] = dropHeight1
+    objectDict['dropHeight2'] = dropHeight2
+    objectDict['dropHeight3'] = dropHeight3
+
+    objectDict['middle']    = 0
+    objectDict['left']      = boxDistance
+    objectDict['right']     = -boxDistance
 
     setGripperTargetMovingWithVehicle()
     setFkMode()
@@ -428,7 +474,7 @@ function rest()
     pickupBoxFromPlace(yellowBox2,pickup2)
     -- yellow box2 first drop:
     dropToPlace(place2,0.04,dropHeight1,pickup2,false)
-    pickupFromPlatformAndReorient(yellowBox1)
+    pickupFromPlatformAndReorient(yellgitowBox1)
     dropToPlace(place2,-0.04,dropHeight1,pickup2,false)
 
 
@@ -482,7 +528,25 @@ function rest()
     sim.stopSimulation()
 end
 
-function voidi():
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+
+
+
+function voidi()
 
 
 
