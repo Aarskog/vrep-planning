@@ -7,17 +7,16 @@ import time
 import domain_rob_to_door as drtd
 
 class Solver:
-	def __init__(self,domain_path,problem_path,print_progress=True):
-		debug = False
-		profiling = False
+	def __init__(self,domain_path,problem_path,solver,print_progress=True,debug = False,profiling=False):
+		# debug = False
+		debug = debug
+		profiling = profiling
 
 		domain_file = open(domain_path,'r')
 		problem_file = open(problem_path,'r')
 
 		#dom24.print_room()
-		# solver = 'bFS'
-		# solver = None
-		solver = 'missing state'
+
 
 		try:
 			domain = dom.Domain(domain_file)
@@ -44,7 +43,8 @@ class Solver:
 				ps.print_stats()
 				print s.getvalue()
 
-			print("--- %s seconds ---" % (time.time() - start_time))
+			if print_progress:
+				print("--- %s seconds ---" % (time.time() - start_time))
 
 
 
@@ -155,6 +155,11 @@ class Solver:
 	def get_solution(self):
 		return self.solution
 
+	def print_solution(self):
+		solution = self.get_solution()
+		print 'Length of solution: ',len(solution),'\n'
+		for action in solution:
+			print action
 def main():
 
 	dir_path = os.path.dirname(os.path.realpath(__file__))
