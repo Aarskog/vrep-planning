@@ -1,10 +1,9 @@
-import vrep
 import rospy
 from std_msgs.msg import String
-import PDDLparser
-import towerOfHanoiPDDL as toh
+import Hanoi.towerOfHanoiPDDL as toh
 import os
-import PDDLparser as pp
+from solver import PDDLparser as pp
+
 '''
 Actions:
 pickupBoxFromPlace(box,where)
@@ -19,9 +18,7 @@ class vrep_youbot_planning:
 		self.message_received = False
 		self.plan = \
 		[["pickupBoxFromPlace redBox1 pickup1"],		["dropToPlace place3 middle dropHeight1 pickup1"],\
-		["pickupBoxFromPlace yellowBox1 pickup2"],		['dropToPlatform platformDrop2'],\
-		["pickupBoxFromPlace yellowBox2 pickup2"],		["dropToPlace place2 right dropHeight1 pickup2"],\
-		['pickupFromPlatformAndReorient yellowBox1'],	["dropToPlace place2 left dropHeight1 pickup2"],\
+
 		["pickupBoxFromPlace redBox1 pickup2"],			["dropToPlace place2 middle dropHeight2 pickup2"],\
 		['pickupBoxFromPlace greenBox1 pickup2'],		['dropToPlatform platformDrop1'],\
 		['pickupBoxFromPlace greenBox2 pickup2'],		['dropToPlatform platformDrop3'],\
@@ -35,6 +32,11 @@ class vrep_youbot_planning:
 		['pickupBoxFromPlace redBox1 pickup1'],			['dropToPlace place3 middle dropHeight3 pickup1'],['end']]
 
 		self.talker()
+
+		self.heights = {}
+		self.heights['place1'] = 3
+		self.heights['place2'] = 0
+		self.heights['place3'] = 0
 
 	def generate_hanoi_plan(self,plan):
 
@@ -72,6 +74,37 @@ class vrep_youbot_planning:
 				prev_msg = msg
 			pub.publish(msg)
 			rate.sleep()
+
+	def move_red(place_from,place_to):
+
+		self.heights[place_to] += 1
+		self.heights[place_from] -= 1
+		dropheight = 'dropheight'+str(self.heights[place_to])
+		actions = []
+		actions.append('pickupBoxFromPlace redBox1 pickup1')
+		actions.append('dropToPlace '+place+' middle '+dropheight+'pickup1')
+		#["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place3 middle dropHeight1 pickup1"]
+		return actions
+	def move_yellow(place_from,place_to):
+
+		self.heights[place_to] += 1
+		self.heights[place_from] -= 1
+		dropheight = 'dropheight'+str(self.heights[place_to])
+
+		actions = []
+		actions.append("pickupBoxFromPlace yellowBox1 pickup2")
+		actions.append('dropToPlatform platformDrop2')
+		actions.append("pickupBoxFromPlace yellowBox2 pickup2")
+		actions.append('dropToPlace '+ place_to +' right dropHeight1 pickup2')
+		actions.append('pickupFromPlatformAndReorient yellowBox1')
+		actions.append('dropToPlace '+ place_to +' left dropHeight1 pickup2')
+		'''
+		["pickupBoxFromPlace yellowBox1 pickup2"],		['dropToPlatform platformDrop2'],\
+		["pickupBoxFromPlace yellowBox2 pickup2"],		["dropToPlace place2 right dropHeight1 pickup2"],\
+		['pickupFromPlatformAndReorient yellowBox1'],	["dropToPlace place2 left dropHeight1 pickup2"],\
+		'''
+		return actions
+
 
 def main():
 	dir_path = os.path.dirname(os.path.realpath(__file__))
