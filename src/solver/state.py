@@ -45,7 +45,10 @@ class State:
 			self.objects 	= parent_state.objects
 
 			delete_list 	= action.get_deletelist(action_parameters)
+
 			for item in delete_list:
+
+		
 				self.state.remove(item.upper())
 
 

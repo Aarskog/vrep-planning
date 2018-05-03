@@ -104,6 +104,9 @@ class Solver:
 
 					#check if the state already has been visited using hash table
 					if not tuple(new_state.state) in visited_states:
+						# print '\n'
+						# print '---',new_state.parent_action.name,'---',new_state.action_parameters
+						# print '\n'
 						new_state.set_state_cost(solver)
 						#Add the new state to visited states
 						visited_states[tuple(new_state.state)] = True
