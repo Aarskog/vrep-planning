@@ -40,8 +40,8 @@ def blocks():
 	dir_path = dir_path[:-3]
 
 	# define paths
-	problem_file_name = dir_path+'pddl/blocks/problem1.pddl'
-	domain_file_name = dir_path+'pddl/blocks/domain.pddl'
+	problem_file_name = dir_path+'pddl/blocks/problem2.pddl'
+	domain_file_name = dir_path+'pddl/blocks/domain2.pddl'
 	# #
 
 
@@ -51,7 +51,7 @@ def blocks():
 		# solver = None
 		# solver = 'missing state'
 
-		solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = False, profiling = False)
+		solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = True, profiling = False)
 		# solv.print_solution()
 
 
@@ -64,6 +64,36 @@ def blocks():
 	except rospy.ROSInterruptException:
 		pass
 
+def blocks_3_stacks():
+	dir_path = os.path.dirname(os.path.realpath(__file__))
+	dir_path = dir_path[:-3]
+
+	# define paths
+	problem_file_name = dir_path+'pddl/blocks/problem3stacks.pddl'
+	domain_file_name = dir_path+'pddl/blocks/domain2.pddl'
+	# #
+
+
+	try:
+		#--------------Generate solution--------------
+		# solver = 'bFS'
+		# solver = None
+		solver = 'missing state'
+
+		solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = True, profiling = False)
+		# solv.print_solution()
+
+
+		#--------------------------------------------
+
+		vp = bs.blocks_send_3_stacks(solv.get_solution())
+
+
+
+	except rospy.ROSInterruptException:
+		pass
+
+
 def main():
 	dir_path = os.path.dirname(os.path.realpath(__file__))
 	dir_path = dir_path[:-3]
@@ -73,7 +103,7 @@ def main():
 	domain_file_name = dir_path+'pddl/blocks/domain.pddl'
 	# #
 	#
-	blocks()
+	blocks_3_stacks()
 	# try:
 	# 	#--------------Generate solution--------------
 	# 	# solver = 'bfS'
