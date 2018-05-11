@@ -8,7 +8,8 @@
 	height1 height2 height3
 	height4 height5 height6
 	height7 height8 height9
-	platform1 platform2
+	height00 height01 height02
+	platform1 platform2 platform3
 )
 (:init
 (on g1 ground1) (on g2 ground2) (on g3 ground3)

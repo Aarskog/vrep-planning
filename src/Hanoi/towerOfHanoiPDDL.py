@@ -1,12 +1,12 @@
-
+'''
+This class makes a Tower of Hanoi pddl problem file with arbitrary number of disks
+'''
 class Tower_of_hanoi:
 	def __init__(self,number_of_plates,path):
 		lines = self.make_pddl_problem(number_of_plates)
 		self.make_pddl_file(lines,path)
 
-
 	def make_pddl_problem(self,number_of_plates):
-
 
 		#Lines contains the lines which are written to the pddl file
 		lines = []
@@ -50,8 +50,6 @@ class Tower_of_hanoi:
 
 
 		lines.append(')')
-
-
 
 
 		#--------------------------------------------------------

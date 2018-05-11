@@ -101,6 +101,7 @@ def main():
 	# define paths
 	problem_file_name = dir_path+'pddl/blocks/problem1.pddl'
 	domain_file_name = dir_path+'pddl/blocks/domain.pddl'
+	# tower_of_hanoi()
 	# #
 	#
 	blocks_3_stacks()

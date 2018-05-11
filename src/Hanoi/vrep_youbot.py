@@ -49,7 +49,7 @@ class vrep_youbot_planning:
 
 	def callback(self,data):
 		# rospy.loginfo(rospy.get_name()+"I heard %s",data.data)
-		rospy.loginfo('Action complete')
+		#rospy.loginfo('Action complete')
 		if data.data == 'msg_received':
 			self.plan.pop(0)
 			#self.message_received = True
@@ -78,11 +78,10 @@ class vrep_youbot_planning:
 		self.heights[place_to] += 1
 		self.heights[place_from] -= 1
 		dropheight = 'dropHeight'+str(self.heights[place_to])
+
 		actions = []
 		actions.append(['pickupBoxFromPlace redBox1 pickup1'])
 		actions.append(['dropToPlace '+place_to+' middle '+dropheight+' pickup1'])
-		#["pickupBoxFromPlace redBox1 pickup1"],["dropToPlace place3 middle dropHeight1 pickup1"]
-
 		return actions
 
 	def move_yellow(self,place_from,place_to):
