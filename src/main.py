@@ -108,24 +108,53 @@ def youbot_replanning():
 	world_size = (5,5)
 	robot_start = (4,4)
 	goal = ['(at robot waypoint24)','(holding robot r1)']
-	obstacles = [yr.Obstacle((0,0),'r1'),yr.Obstacle((0,1),'g1'),\
-	yr.Obstacle((1,1),'g2'),yr.Obstacle((1,0),'g3')]
-	yr.youbot_replan(world_size,robot_start,goal,obstacles=obstacles,path=problem_file_name)
+	obstacles = [yr.Obstacle((0,0),'r1'),yr.Obstacle((1,0),'g1'),\
+	yr.Obstacle((1,1),'g2'),yr.Obstacle((0,1),'g3'),yr.Obstacle((4,3),'b1'),yr.Obstacle((3,3),'b2'),\
+		yr.Obstacle((3,4),'b3')]
+	domain = yr.youbot_replan(world_size,robot_start,goal,obstacles=obstacles,path=problem_file_name)
 
 
 	# solver = 'bFS'
-	# solver = None
-	solver = 'missing state'
+	#solver = None
+	# solver = 'missing state'
 
-	solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = True, profiling = False)
-	# solv.print_solution()
+	solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = False, profiling = False)
+	solution = solv.get_solution()
+
+
+	# print '\nInitial state'
+	# dom24.print_room()
+	# print '\n'
+	#
+	# i = 0
+	# while solution:
+	# 	action = solution.pop(0)
+	# 	print '\n'
+	#
+	# 	if not dom24.do_action(action):
+	#
+	# 		print 'Can not pick up. Replanning...'
+	# 		solv = Solver(domain_file_name,problem_file_name,print_progress=False)
+	# 		solution = solv.get_solution()
+	# 		print 'Replanning done'
+	# 		#i = i - 1
+	# 	i = i + 1
+	# print i,' actions attempted'
+
+
+
 	try:
-		so.replan_send(solv.get_solution())
+		so.replan_send(solv.get_solution(),(domain_file_name,problem_file_name),domain)
 	except rospy.ROSInterruptException:
 		pass
 
 def main():
 	youbot_replanning()
+
+
+
+
+
 
 if __name__=="__main__":
 	main()

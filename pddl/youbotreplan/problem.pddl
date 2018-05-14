@@ -31,6 +31,9 @@ r1
 g1
 g2
 g3
+b1
+b2
+b3
 )
 (:init
 (robot robot)
@@ -69,9 +72,7 @@ g3
 (waypoint waypoint17)
 (clear waypoint17)
 (waypoint waypoint18)
-(clear waypoint18)
 (waypoint waypoint19)
-(clear waypoint19)
 (waypoint waypoint20)
 (clear waypoint20)
 (waypoint waypoint21)
@@ -79,7 +80,6 @@ g3
 (waypoint waypoint22)
 (clear waypoint22)
 (waypoint waypoint23)
-(clear waypoint23)
 (waypoint waypoint24)
 (clear waypoint24)
 (can-move waypoint0 waypoint1)
@@ -167,13 +167,22 @@ g3
 (at r1 waypoint0)
 (obstacle g1)
 (moveable g1)
-(at g1 waypoint1)
+(at g1 waypoint5)
 (obstacle g2)
 (moveable g2)
 (at g2 waypoint6)
 (obstacle g3)
 (moveable g3)
-(at g3 waypoint5)
+(at g3 waypoint1)
+(obstacle b1)
+(moveable b1)
+(at b1 waypoint23)
+(obstacle b2)
+(moveable b2)
+(at b2 waypoint18)
+(obstacle b3)
+(moveable b3)
+(at b3 waypoint19)
 )
 (:goal (and
 (at robot waypoint24)

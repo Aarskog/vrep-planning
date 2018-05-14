@@ -1,13 +1,18 @@
 import rospy
 import numpy as np
 from std_msgs.msg import String
+import replanning.youbot_replanning as yr
+from solver import PDDLparser as pp
+import os
 
 class replan_send:
-	def __init__(self,plan):
-
+	def __init__(self,plan,path,domain=None):
+		self.domain = domain
+		self.path = path
+		self.realplan = []
+		self.replanning = False
 		self.plan = self.generate_plan(plan)
-
-		self.talker()
+		self.talker(domain)
 
 	def generate_plan(self,plan):
 		stacks = {}
@@ -15,6 +20,7 @@ class replan_send:
 		vrep_coord_map = adjust_to_vrep_coordinates(0.5,(5,5))
 		actions = []
 		for action in plan:
+			self.realplan.append(action)
 			action = action.split()
 			if action[0] == 'move':
 				to_waypoint = action[3]
@@ -22,12 +28,15 @@ class replan_send:
 				two_d = vrep_coord_map[str(two_d)]
 				actions.append('move '+str(two_d[0])+' '+str(two_d[1]))
 
+
 			elif action[0] == 'pickup':
 				actions.append('pickup '+action[2].lower())
 				to_waypoint = action[4]
 				two_d  = one_d_two_d(to_waypoint[8:])
 				two_d = vrep_coord_map[str(two_d)]
 				actions.append('move '+str(two_d[0])+' '+str(two_d[1]))
+				self.realplan.append('move ROBOT ' + action[-2] + ' ' + action[-1])
+
 			elif action[0] == 'put-down':
 				to_waypoint = action[4]
 				from_waypoint = action[3]
@@ -37,19 +46,46 @@ class replan_send:
 				from2d = one_d_two_d(from_waypoint[8:])
 				from2d = vrep_coord_map[str(from2d)]
 				actions.append('put-down '+str(to2d[0])+' '+str(to2d[1]))
-				actions.append('move '+str(from2d[0])+' '+str(from2d[1]))
+
+
 
 
 		actions.append('end')
+		self.realplan.append('end')
 		return actions
 
 	def callback(self,data):
 
+
 		if data.data == 'msg_received':
 			self.plan.pop(0)
+		elif data.data == 'new_boxes_spawned':
+
+			self.replanning = True
+			domain =self.domain
+			obstacles = domain.obstacle_objects
+			new_obstacles = [yr.Obstacle((4,3),'b1'),yr.Obstacle((3,3),'b2'),\
+				yr.Obstacle((3,4),'b3')]
+			obstacles.extend(new_obstacles)
 
 
-	def talker(self):
+			dir_path = os.path.dirname(os.path.realpath(__file__))
+			dir_path = dir_path[:-3]
+
+
+			domain = yr.youbot_replan(domain.world_size,domain.robot.pos,domain.goal,obstacles=obstacles,path=self.path[1])
+			# solver = 'bFS'
+			solver = None
+			# solver = 'missing state'
+
+
+			solv = pp.Solver(self.path[0],self.path[1],solver,print_progress = True,debug = False, profiling = False)
+			solution = solv.get_solution()
+			self.plan = self.generate_plan(solution)
+			self.talker(domain)
+
+
+	def talker(self,domain):
 		# rospy.init_node('listener', anonymous=True)
 		rospy.Subscriber("confirm", String, self.callback)
 
@@ -63,10 +99,16 @@ class replan_send:
 			# str = "hells world %s" % rospy.get_time()
 			msg = self.plan[0]
 			if not msg==prev_msg:
-				rospy.loginfo(msg)
+
+				rospy.loginfo('ROS message sent: '+msg)
+				domain.do_action(self.realplan.pop(0))
+				print '\n'
 				prev_msg = msg
-			pub.publish(msg)
+			if not self.replanning:
+				pub.publish(msg)
 			rate.sleep()
+
+
 
 def one_d_two_d(num):
 	'''

@@ -5,6 +5,9 @@ import sys
 
 class youbot_replan:
 	def __init__(self,world_size,robot_start,goal,obstacles=None,path=None):
+		self.obstacle_objects = obstacles
+		self.world_size = world_size
+		self.goal = goal
 		#Make room
 		self.room = [["   " for x in range(world_size[1])] for y in range(world_size[0])]
 		self.room_size = world_size
@@ -214,6 +217,17 @@ class youbot_replan:
 				self.make_pddl_problem( self.robot.pos,self.door_pos,self.obstacles_array,self.room_size,self.path)
 
 				success = False
+
+			# #To waypoint
+			# to_wp = spl_act[-1]
+			# new_pos = (int(to_wp[8:])/self.room_size[1],int(to_wp[8:])%self.room_size[1])
+			#
+			# self.room[self.robot.pos[0]][self.robot.pos[1]] = "   "
+			# #self.room[new_pos[0]][new_pos[1]] = self.robot
+			#
+			# self.robot.pos=new_pos
+			#
+
 
 
 		elif spl_act[0] == 'put-down':
