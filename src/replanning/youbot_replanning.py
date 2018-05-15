@@ -4,7 +4,7 @@ import math
 import sys
 
 class youbot_replan:
-	def __init__(self,world_size,robot_start,goal,obstacles=None,path=None):
+	def __init__(self,world_size,robot_start,goal,obstacles=None,path=None,robot=None):
 		self.obstacle_objects = obstacles
 		self.world_size = world_size
 		self.goal = goal
@@ -19,7 +19,10 @@ class youbot_replan:
 				self.obstacles[(obstacle.pos[0],obstacle.pos[1])] = obstacle
 		self.obstacles_array = obstacles
 
-		self.robot = Robot(robot_start)
+		if robot:
+			self.robot = robot
+		else:
+			self.robot = Robot(robot_start)
 
 		#Set robot position
 		self.room[robot_start[0]][robot_start[1]] = self.robot.name
@@ -103,7 +106,7 @@ class youbot_replan:
 		lines.append('(:init')
 		lines.append('(robot robot)')
 		#lines.append('(door door)')
-		lines.append('(handempty)')
+
 		lines.append('(at robot waypoint' + str(world_size[1]*self.robot.pos[0]+self.robot.pos[1]) +  ')')
 
 
@@ -132,6 +135,14 @@ class youbot_replan:
 				lines.remove('(clear '+obstacle_pos+')')
 
 				obstacle_num += 1
+		if self.robot.holding:
+			lines.append('(holding robot ' +self.robot.holding.strips_name + ')')
+			pos = 'waypoint'+str(self.robot.holding.pos[1]+5*self.robot.holding.pos[0])
+			print '(at '+self.robot.holding.strips_name+' '+pos+')'
+			lines.remove('(at '+self.robot.holding.strips_name+' '+pos+')')
+			self.room[self.robot.holding.pos[0]][self.robot.holding.pos[1]] = '   '
+		else:
+			lines.append('(handempty)')
 
 
 		lines.append(')')
@@ -176,7 +187,6 @@ class youbot_replan:
 			Updates the visualization of the domain
 		'''
 		success = True
-
 		spl_act = action.split()
 		#print spl_act
 		if spl_act[0] == 'move':

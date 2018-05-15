@@ -107,20 +107,23 @@ def youbot_replanning():
 
 	world_size = (5,5)
 	robot_start = (4,4)
-	goal = ['(at robot waypoint24)','(holding robot r1)']
-	obstacles = [yr.Obstacle((0,0),'r1'),yr.Obstacle((1,0),'g1'),\
-	yr.Obstacle((1,1),'g2'),yr.Obstacle((0,1),'g3'),yr.Obstacle((4,3),'b1'),yr.Obstacle((3,3),'b2'),\
-		yr.Obstacle((3,4),'b3')]
+	goal = ['(at robot waypoint0)','(holding robot r1)']
+	# obstacles = [yr.Obstacle((0,0),'r1'),yr.Obstacle((1,0),'g1'),\
+	# yr.Obstacle((1,1),'g2'),yr.Obstacle((0,1),'g3'),yr.Obstacle((4,3),'b1'),yr.Obstacle((3,3),'b2'),\
+	# 	yr.Obstacle((3,4),'b3')]
+	obstacles = [yr.Obstacle((0,4),'r1'),yr.Obstacle((0,3),'g1'),\
+	yr.Obstacle((1,3),'g2'),yr.Obstacle((1,4),'g3')]#,yr.Obstacle((0,3),'b1'),yr.Obstacle((1,3),'b2'),\
+	#yr.Obstacle((1,4),'b3')]
 	domain = yr.youbot_replan(world_size,robot_start,goal,obstacles=obstacles,path=problem_file_name)
 
 
 	# solver = 'bFS'
-	#solver = None
-	# solver = 'missing state'
-
-	solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = True,debug = False, profiling = False)
+	# solver = None
+	solver = 'missing state'
+	print 'Finding plan'
+	solv = pp.Solver(domain_file_name,problem_file_name,solver,print_progress = False,debug = False, profiling = False)
 	solution = solv.get_solution()
-
+	print 'Plan found'
 
 	# print '\nInitial state'
 	# dom24.print_room()

@@ -12,7 +12,7 @@ class replan_send:
 		self.realplan = []
 		self.replanning = False
 		self.plan = self.generate_plan(plan)
-		self.talker(domain)
+		self.talker()
 
 	def generate_plan(self,plan):
 		stacks = {}
@@ -59,13 +59,14 @@ class replan_send:
 
 		if data.data == 'msg_received':
 			self.plan.pop(0)
+			self.domain.do_action(self.realplan.pop(0))
 		elif data.data == 'new_boxes_spawned':
 
 			self.replanning = True
 			domain =self.domain
 			obstacles = domain.obstacle_objects
-			new_obstacles = [yr.Obstacle((4,3),'b1'),yr.Obstacle((3,3),'b2'),\
-				yr.Obstacle((3,4),'b3')]
+			new_obstacles = [yr.Obstacle((1,0),'b1'),yr.Obstacle((1,1),'b2'),\
+				yr.Obstacle((0,1),'b3')]
 			obstacles.extend(new_obstacles)
 
 
@@ -73,19 +74,23 @@ class replan_send:
 			dir_path = dir_path[:-3]
 
 
-			domain = yr.youbot_replan(domain.world_size,domain.robot.pos,domain.goal,obstacles=obstacles,path=self.path[1])
+			self.domain = yr.youbot_replan(domain.world_size,domain.robot.pos,domain.goal,obstacles=obstacles,path=self.path[1],robot=domain.robot)
 			# solver = 'bFS'
-			solver = None
-			# solver = 'missing state'
+			# solver = None
+			solver = 'missing state'
 
-
-			solv = pp.Solver(self.path[0],self.path[1],solver,print_progress = True,debug = False, profiling = False)
+			print 'Replanning'
+			solv = pp.Solver(self.path[0],self.path[1],solver,print_progress = False,debug = False, profiling = False)
+			print 'Plan found'
 			solution = solv.get_solution()
+			self.realplan = []
+			#self.plan = []
 			self.plan = self.generate_plan(solution)
-			self.talker(domain)
+			self.replanning = False
+			#self.talker(domain)
 
 
-	def talker(self,domain):
+	def talker(self):
 		# rospy.init_node('listener', anonymous=True)
 		rospy.Subscriber("confirm", String, self.callback)
 
@@ -99,10 +104,10 @@ class replan_send:
 			# str = "hells world %s" % rospy.get_time()
 			msg = self.plan[0]
 			if not msg==prev_msg:
-
-				rospy.loginfo('ROS message sent: '+msg)
-				domain.do_action(self.realplan.pop(0))
 				print '\n'
+				rospy.loginfo('ROS message sent: '+msg)
+
+
 				prev_msg = msg
 			if not self.replanning:
 				pub.publish(msg)
